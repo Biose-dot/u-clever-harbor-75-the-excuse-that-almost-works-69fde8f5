@@ -1,26 +1,22 @@
-"""Copier entrypoint: copies the committed entry.txt asset to the output dir."""
+"""Copier entrypoint: prints entry.txt and copies it to the output dir."""
 
 import os
-import shutil
+from pathlib import Path
 
-ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "entry.txt")
+ASSET = Path(__file__).resolve().with_name("entry.txt")
 
 
-def fallback_copy(src, dst):
-    with open(src, "rb") as f:
-        data = f.read()
-    with open(dst, "wb") as f:
-        f.write(data)
+def load_entry():
+    raw = ASSET.read_bytes()
+    return raw.decode("utf-8").strip()
 
 
 def main():
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(out_dir, exist_ok=True)
-    dst = os.path.join(out_dir, "entry.txt")
-    try:
-        shutil.copyfile(ASSET, dst)
-    except Exception:
-        fallback_copy(ASSET, dst)
+    text = load_entry()
+    print(text)
+    out_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "entry.txt").write_text(text + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
